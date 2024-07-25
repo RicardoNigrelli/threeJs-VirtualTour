@@ -16,6 +16,9 @@ import {
   WebGLRenderer,
   EquirectangularReflectionMapping,
   ACESFilmicToneMapping,
+  TextureLoader,
+  RepeatWrapping,
+  MeshStandardMaterial,
 } from "three";
 
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
@@ -55,6 +58,8 @@ function init() {
 
   const blocker = document.getElementById("blocker");
   const instructions = document.getElementById("instructions");
+  const vertex = new Vector3();
+  const color = new Color();
 
   instructions.addEventListener("click", function () {
     controls.lock();
@@ -130,6 +135,63 @@ function init() {
 
   raycaster = new Raycaster(new Vector3(), new Vector3(0, -1, 0), 0, 10);
 
+  // floor
+
+  let floorTexture = new TextureLoader().load("textures/floorpicture.png");
+  floorTexture.wrapS = floorTexture.wrapT = RepeatWrapping;
+  floorTexture.repeat.set(1000, 1000);
+  floorTexture.anisotropy = 16;
+
+  let floorMaterial = new MeshStandardMaterial({ map: floorTexture });
+  let floorGeometry = new PlaneGeometry(1000, 1000);
+  let floorMesh = new Mesh(floorGeometry, floorMaterial);
+  floorMesh.position.set(0, 0, 0);
+  floorMesh.rotation.x = -Math.PI / 2;
+  floorMesh.receiveShadow = true;
+  scene.add(floorMesh);
+
+  // let floorGeometry = new PlaneGeometry(2000, 2000, 100, 100);
+  // floorGeometry.rotateX(-Math.PI / 2);
+
+  // // vertex displacement
+
+  // let position = floorGeometry.attributes.position;
+
+  // for (let i = 0, l = position.count; i < l; i++) {
+  //   vertex.fromBufferAttribute(position, i);
+
+  //   vertex.x += Math.random() * 20 - 10;
+  //   vertex.y = 0;
+  //   vertex.z += Math.random() * 20 - 10;
+
+  //   position.setXYZ(i, vertex.x, vertex.y, vertex.z);
+  // }
+
+  // floorGeometry = floorGeometry.toNonIndexed(); // ensure each face has unique vertices
+
+  // position = floorGeometry.attributes.position;
+  // const colorsFloor = [];
+
+  // for (let i = 0, l = position.count; i < l; i++) {
+  //   color.setHSL(
+  //     Math.random() * 0.3 + 0.5,
+  //     0.75,
+  //     Math.random() * 0.25 + 0.75,
+  //     SRGBColorSpace
+  //   );
+  //   colorsFloor.push(color.r, color.g, color.b);
+  // }
+
+  // floorGeometry.setAttribute(
+  //   "color",
+  //   new Float32BufferAttribute(colorsFloor, 3)
+  // );
+
+  // const floorMaterial = new MeshBasicMaterial({ vertexColors: true });
+
+  // const floor = new Mesh(floorGeometry, floorMaterial);
+  // scene.add(floor);
+
   //gltf
   new RGBELoader()
     .setPath("./textures/")
@@ -140,17 +202,71 @@ function init() {
       scene.environment = texture;
 
       // model
-
       const loader = new GLTFLoader().setPath("./models/");
+
+      loader.load("exhibition_booth.glb", async function (gltf) {
+        const model = gltf.scene;
+        model.position.set(4, 0, 8);
+        model.rotation.set(0, -Math.PI, 0);
+        await renderer.compileAsync(model, camera, scene);
+
+        scene.add(model);
+      });
       loader.load("venus_exhibition_stall_design.glb", async function (gltf) {
         const model = gltf.scene;
+        model.position.set(10, 0, 10);
+        model.rotation.set(0, -Math.PI, 0);
+        await renderer.compileAsync(model, camera, scene);
 
-        // wait until the model can be added to the scene without blocking due to shader compilation
+        scene.add(model);
+      });
+      loader.load("exhibition_booth.glb", async function (gltf) {
+        const model = gltf.scene;
+        model.position.set(20, 0, 8);
+        model.rotation.set(0, -Math.PI, 0);
+        await renderer.compileAsync(model, camera, scene);
+
+        scene.add(model);
+      });
+
+      loader.load("stand_is_being_constructed.glb", async function (gltf) {
+        const model = gltf.scene;
+        model.position.set(8, 0, 2);
+        model.scale.set(0.01, 0.01, 0.01); 
+        await renderer.compileAsync(model, camera, scene);
+
+        scene.add(model);
+      });
+      loader.load("venus_exhibition_stall_design.glb", async function (gltf) {
+        const model = gltf.scene;
+        model.position.set(20, 0, 0);
 
         await renderer.compileAsync(model, camera, scene);
 
         scene.add(model);
       });
+      loader.load("venus_exhibition_stall_design.glb", async function (gltf) {
+        console.log("Model loaded");
+
+        const model = gltf.scene;
+
+        console.log("Model scene", model);
+
+        await renderer.compileAsync(model, camera, scene);
+
+        scene.add(model);
+        console.log("Model added to scene");
+      });
+
+      // loader.load("expo_books.glb", async function (gltf) {
+      //   const model1 = gltf.scene;
+      //   model1.position.set(0, 30, 0)
+      //   model1.scale.set(0.1,0.1,0.1)
+
+      //   await renderer.compileAsync(model1, camera, scene);
+
+      //   scene.add(model1);
+      // });
     });
   //
 
